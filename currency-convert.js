@@ -15,12 +15,19 @@ const contriesURL = 'https://restcountries.eu/rest/v2/currency'
 // async await
 const getExchangeRate = async (from, to) => {
 
-  const res = await axios.get(currencyUrl);
+  try {
+    const res = await axios.get(currencyUrl);
+    const euro = 1 / res.data.rates[from];
+    const rate = euro * res.data.rates[to];
 
-  const euro = 1 / res.data.rates[from];
-  const rate = euro * res.data.rates[to];
+    if (isNaN(rate)) {
+      throw new Error();
+    }
 
-  return rate.toFixed(2);
+    return rate.toFixed(2);
+  } catch (e) {
+    throw new Error(`Unable to get exchange rate for ${from} and ${to}.`);
+  }
 }
 
 
@@ -32,8 +39,13 @@ const getExchangeRate = async (from, to) => {
 
 // async await
 const getCountries = async currCode => {
-  const res = await axios.get(`${contriesURL}/${currCode}`);
-  return res.data.map(country => country.name);
+
+  try {
+    const res = await axios.get(`${contriesURL}/${currCode}`);
+    return res.data.map(country => country.name);
+  } catch (e) {
+    throw new Error(`Unable to get countries that use ${currCode}`);
+  }
 }
 
 
@@ -56,4 +68,8 @@ const convertCurrency = async (from, to, amount) => {
 
 convertCurrency('USD', 'EUR', 5).then((message) => {
   console.log(message);
+}).catch(e => {
+  console.log(e.message);
 })
+
+
